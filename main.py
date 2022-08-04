@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 import boto3
 from botocore.exceptions import ClientError
 import logging
@@ -7,9 +7,10 @@ import os
 app = FastAPI()
 
 
-@app.post("/bees/{file_path:path}")
-def store_bee_photo(file_path: str):
-    return {"file_path": file_path}
+@app.post("/upload_bee/")
+def upload_bee_photo(file: UploadFile = File()):
+    upload_file(file_name = file_path, bucket = "lawsonbh-real-bees-fake-hats")
+    return {"filename":file.filename}
 
 @app.get("/bees/{file_path:path}")
 def fetch_bee_photo(file_path: str):
@@ -28,7 +29,7 @@ def upload_file(file_name, bucket, object_name=None):
     """
 
     if object_name is None:
-        object_name = os.path.basename(file_name
+        object_name = os.path.basename(file_name)
     
     s3_client = boto3.client('s3')
     try:
