@@ -8,9 +8,19 @@ app = FastAPI()
 
 
 @app.post("/upload_bee/")
-def upload_bee_photo(file: UploadFile = File()):
-    upload_file(file_name = file_path, bucket = "lawsonbh-real-bees-fake-hats")
-    return {"filename":file.filename}
+def upload_file(file: UploadFile, bucket: str):
+    """Upload a file to S3 bucket
+    :param file: FastAPI type for UploadFile
+    :param bucket: Bucket in s3 to upload to
+    :return: bucketname, path to file in bucket, and file name in bucket  if file uploaded, else False
+    """
+    s3_client = boto3.client('s3')
+    try:
+        response = s3_client.upload_file(file.file, bucket)
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return {"message":bucket+file.filename}
 
 @app.get("/bees/{file_path:path}")
 def fetch_bee_photo(file_path: str):
@@ -20,22 +30,4 @@ def fetch_bee_photo(file_path: str):
 def delete_bee_photo(file_path: str):
     return {"file_path": file_path}
 
-def upload_file(file_name, bucket, object_name=None):
-    """Upload a file to S3 bucket
-    :param file_name: File to upload
-    :param bucket: Bucket in s3 to upload to
-    :param object_name: S3 object name, default to file_name parameter value
-    :return: True if file uploaded, else False
-    """
-
-    if object_name is None:
-        object_name = os.path.basename(file_name)
-    
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
 
