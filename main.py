@@ -1,10 +1,9 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
 import boto3
 from botocore.exceptions import ClientError
-import logging
 import os
 from dotenv import load_dotenv
-
+from typing import Optional
 
 load_dotenv()
 
@@ -12,7 +11,7 @@ app = FastAPI()
 
 
 @app.post("/upload_bee/")
-def upload_file(filepath: str, bucket: str, acl: str) -> str:
+def upload_file(filepath: str, bucket: Optional[str] = None, acl: Optional[str] = None) -> str:
     """Upload a file to S3 bucket
     :param filepath: Path to bee photo including filename
     :param bucket: Bucket in s3 to upload to
@@ -24,6 +23,7 @@ def upload_file(filepath: str, bucket: str, acl: str) -> str:
     aws_key = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
     aws_region = os.environ["AWS_REGION"]
+    acl = acl or os.environ["AWS_ACL"]
 
     session = boto3.Session(aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
     s3 = session.resource("s3")
