@@ -19,8 +19,8 @@ def upload_bee_photo(file_obj:UploadFile, bucket: Optional[str] = None, acl: Opt
     - **acl**: the S3 access control list type
     Returns the url of the file you uploaded
     """
-    s3_file_link = upload_file(file_obj=file_obj, bucket=bucket, acl=acl)
-    return {"message":s3_file_link}
+    response = upload_file(file_obj=file_obj, bucket=bucket, acl=acl)
+    return {"message":response}
 
 def upload_file(file_obj, bucket: Optional[str] = None, acl: Optional[str] = None) -> str:
     """Upload a file like object to an S3 bucket
@@ -40,10 +40,17 @@ def upload_file(file_obj, bucket: Optional[str] = None, acl: Optional[str] = Non
             aws_access_key_id = aws_key,
             aws_secret_access_key = aws_secret)
     
-    response = s3_client.upload_fileobj(file_obj.file, s3_bucket, file_obj.filename) 
+    response = s3_client.upload_fileobj(file_obj.file, s3_bucket, file_obj.filename)
+
     head = s3_client.head_object(Bucket = s3_bucket, Key = file_obj.filename)
-    success = head['ContentLength']
-    return success
+    upload_content_length = head['ContentLength']
+
+    if upload_content_length > 0:
+        response = f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{file_obj.filename}"
+    else:
+        response = f"Something went wrong in upload_fileobj"
+
+    return response
 
 @app.get("/bees/{file_path:path}")
 def fetch_bee_photo(file_path: str):
