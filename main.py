@@ -10,7 +10,6 @@ load_dotenv()
 app = FastAPI()
 
 
-##TODO: Build out the fast api function placeholder so it is separate from the upload_file function
 @app.post("/upload_bee/")
 def placeholder():
     response.key = upload_file()
@@ -37,7 +36,6 @@ def upload_file(filepath: str, bucket: Optional[str] = None, acl: Optional[str] 
             Key=os.path.basename(filepath),Body=open(filepath,"rb"),ACL=acl
             )
     s3_file_link = f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{response.key}"
-    print(s3_file_link)
 
     return s3_file_link
 
