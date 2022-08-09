@@ -39,9 +39,11 @@ def upload_file(file_obj, bucket: Optional[str] = None, acl: Optional[str] = Non
     s3_client = boto3.client('s3',
             aws_access_key_id = aws_key,
             aws_secret_access_key = aws_secret)
+    
     response = s3_client.upload_fileobj(file_obj.file, s3_bucket, file_obj.filename) 
-
-    return response
+    head = s3_client.head_object(Bucket = s3_bucket, Key = file_obj.filename)
+    success = head['ContentLength']
+    return success
 
 @app.get("/bees/{file_path:path}")
 def fetch_bee_photo(file_path: str):
