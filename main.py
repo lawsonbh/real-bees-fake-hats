@@ -11,7 +11,7 @@ app = FastAPI()
 
 
 @app.post("/upload_bee/")
-def upload_bee_photo(file_obj:UploadFile(...), bucket: Optional[str] = None, acl: Optional[str] = None) -> str:
+def upload_bee_photo(file_obj:UploadFile, bucket: Optional[str] = None, acl: Optional[str] = None) -> str:
     """
     Upload a bee photo to an S3 bucket
     - **file_obj**: required, a file like object - hopefully it is a nice bee photo
@@ -19,7 +19,7 @@ def upload_bee_photo(file_obj:UploadFile(...), bucket: Optional[str] = None, acl
     - **acl**: the S3 access control list type
     Returns the url of the file you uploaded
     """
-    s3_file_link = upload_file(file_obj=file, bucket=bucket, acl=acl)
+    s3_file_link = upload_file(file_obj=file_obj, bucket=bucket, acl=acl)
     return {"message":s3_file_link}
 
 def upload_file(file_obj, bucket: Optional[str] = None, acl: Optional[str] = None) -> str:
