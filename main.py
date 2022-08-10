@@ -16,25 +16,23 @@ def upload_bee_photo(
 ) -> str:
     """
     Upload a bee photo to an S3 bucket
-    - **file_obj**: required, a file like object - hopefully it is a
-    nice bee photo
+    - **file_obj**: required, a file like object - hopefully it is a nice bee photo
     - **bucket**: the S3 bucket to post the file object to
     - **acl**: the S3 access control list type
-    Returns the url of the file you uploaded
+    Returns a dictionary with the url of the file you uploaded as the value of the key
     """
     response = upload_file(file_obj=file_obj, bucket=bucket, acl=acl)
     return {"message": response}
 
 
 def upload_file(
-    file_obj, bucket: Optional[str] = None, acl: Optional[str] = None
+    file_obj: UploadFile, bucket: Optional[str] = None, acl: Optional[str] = None
 ) -> str:
     """Upload a file like object to an S3 bucket
     :param file_obj: File like object recognized by FastAPI
     :param bucket: the S3 bucket to post the file object to
     :param acl: the S3 access control list type
-    :return: dict containing a value with the URL of the file you
-    uploaded
+    :return: dict containing a value with the URL of the file you uploaded
     """
     s3_bucket = bucket or os.environ["AWS_S3_BUCKET"]
 
