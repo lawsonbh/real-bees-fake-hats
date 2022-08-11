@@ -58,9 +58,43 @@ def upload_file(
     return response
 
 
-@app.get("/bees/{file_path:path}")
-def fetch_bee_photo(file_path: str):
-    return {"file_path": file_path}
+@app.get("/download_bee/")
+def download_bee_photo(
+    bee_photo_name: str, bucket: Optional[str] = None, acl: Optional[str] = None
+) -> str:
+    """
+    Download a bee photo from an S3 bucket
+    - **bee_photo_name**: required, str including file extension
+    - **bucket**: the S3 bucket to post the file object to
+    - **acl**: the S3 access control list type
+    Returns a dictionary with the path of the file you downloaded
+    """
+    response = download_file(file_name=bee_photo_name, bucket=bucket, acl=acl)
+    return {"message": response}
+
+
+def download_file(
+    file_name: str, bucket: Optional[str] = None, acl: Optional[str] = None
+) -> str:
+    """Upload a file like object to an S3 bucket
+    :param file_name: Name of the file to download including its extension
+    :param bucket: the S3 bucket to download the file from
+    :param acl: the S3 access control list type
+    :return: dict containing a value with the path to the file you downloaded
+    """
+    s3_bucket = bucket or os.environ["AWS_S3_BUCKET"]
+
+    aws_key = os.environ["AWS_ACCESS_KEY_ID"]
+    aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    s3_client = boto3.client(
+        "s3", aws_access_key_id=aws_key, aws_secret_access_key=aws_secret
+    )
+    # TODO: Create parameter in func for changing Key and Filename values
+    response = s3_client.download_file(
+        Bucket=s3_bucket, Filename=file_name, Key=file_name
+    )
+    return response
 
 
 @app.delete("/bees/{file_path:path}")
