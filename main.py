@@ -58,7 +58,7 @@ def upload_file(
     return response
 
 
-@app.get("/download_bee/")
+@app.get("/download_bee/", status_code=204)
 def download_bee_photo(
     bee_photo_name: str, bucket: Optional[str] = None, acl: Optional[str] = None
 ) -> str:
@@ -91,9 +91,11 @@ def download_file(
         "s3", aws_access_key_id=aws_key, aws_secret_access_key=aws_secret
     )
     # TODO: Create parameter in func for changing Key and Filename values
+
     response = s3_client.download_file(
         Bucket=s3_bucket, Filename=file_name, Key=file_name
     )
+    # TODO: Implement an endpoint to list the contents of the bucket
     return response
 
 
