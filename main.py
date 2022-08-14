@@ -58,9 +58,110 @@ def upload_file(
     return response
 
 
-@app.get("/bees/{file_path:path}")
-def fetch_bee_photo(file_path: str):
-    return {"file_path": file_path}
+@app.get("/download_bee/", status_code=204)
+def download_bee_photo(
+    bee_photo_name: str, bucket: Optional[str] = None, acl: Optional[str] = None
+) -> str:
+    """
+    Download a bee photo from an S3 bucket
+    - **bee_photo_name**: required, str including file extension
+    - **bucket**: the S3 bucket to post the file object to
+    - **acl**: the S3 access control list type
+    Returns a dictionary with the path of the file you downloaded
+    """
+    response = download_file(file_name=bee_photo_name, bucket=bucket, acl=acl)
+    return {"message": response}
+
+
+def download_file(
+    file_name: str, bucket: Optional[str] = None, acl: Optional[str] = None
+) -> str:
+    """Upload a file like object to an S3 bucket
+    :param file_name: Name of the file to download including its extension
+    :param bucket: the S3 bucket to download the file from
+    :param acl: the S3 access control list type
+    :return: dict containing a value with the path to the file you downloaded
+    """
+    s3_bucket = bucket or os.environ["AWS_S3_BUCKET"]
+
+    aws_key = os.environ["AWS_ACCESS_KEY_ID"]
+    aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    s3_client = boto3.client(
+        "s3", aws_access_key_id=aws_key, aws_secret_access_key=aws_secret
+    )
+    # TODO: Create parameter in func for changing Key and Filename values
+
+    response = s3_client.download_file(
+        Bucket=s3_bucket, Filename=file_name, Key=file_name
+    )
+    # TODO: Implement an endpoint to list the contents of the bucket
+    return response
+
+
+@app.get("/list_bees/")
+def list_bees():
+    """List all objects in the S3 bucket. Hopefully its a bunch of bees in hats!
+    Returns a dictionary where the value of the message key is the list of object
+    names as strings.
+    """
+    response = list_objects()
+
+    return {"message": response}
+
+
+def list_objects() -> list:
+    """Set up access to the S3 bucket and call the generator to create a list of
+    all objects.
+    :return: a list of objects from the bucket
+    """
+
+    s3_bucket = os.environ["AWS_S3_BUCKET"]
+
+    aws_key = os.environ["AWS_ACCESS_KEY_ID"]
+    aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    s3_client = boto3.client(
+        "s3", aws_access_key_id=aws_key, aws_secret_access_key=aws_secret
+    )
+
+    s3_paginator = s3_client.get_paginator("list_objects_v2")
+
+    all_bees = (
+        key
+        for key in generate_bucket_keys(paginator=s3_paginator, bucket_name=s3_bucket)
+    )
+
+    return all_bees
+
+
+def generate_bucket_keys(
+    paginator,
+    bucket_name: str,
+    prefix: Optional[str] = "/",
+    delimiter: Optional[str] = "/",
+    start_after: Optional[str] = "",
+):
+    """Function to generate and yield all object names from an S3 bucket. Follows
+    AWS recommended practice for using paginated results with the list_objects_v2
+    utility from boto3.
+    :param paginator: a collection from the s3_client
+    :param bucket_name: S3 bucket to list the contents of
+    :param prefix: S3 limits responses to keys that begin with this character or
+    set of characters
+    :param delimiter: a character or set of characters that groups objects in S3
+    :param start_after: where to start listing from, S3 starts listing after the
+    specified key
+    :return: generator yielding a string key to the object in the specifed S3
+    bucket
+    """
+    prefix = prefix[1:] if prefix.startswith(delimiter) else prefix
+    start_after = (start_after or prefix) if prefix.endswith(delimiter) else start_after
+    for page in paginator.paginate(
+        Bucket=bucket_name, Prefix=prefix, StartAfter=start_after
+    ):
+        for content in page.get("Contents", ()):
+            yield content["Key"]
 
 
 @app.delete("/bees/{file_path:path}")
