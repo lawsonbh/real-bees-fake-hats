@@ -17,6 +17,17 @@ def on_startup():
     create_db_and_tables()
 
 
+def create_object_s3_url(object_name: str) -> str:
+    """Take an object name and construct a url to access it in the s3 bucket
+    :param object_name: name of the object in s3
+    :return: string representing the url to access the object
+    """
+    s3_bucket = os.environ["AWS_S3_BUCKET"]
+    aws_region = os.environ["AWS_REGION"]
+
+    return f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{object_name}"
+
+
 @app.post("/upload_bee/")
 def upload_bee_photo(
     file_obj: UploadFile, bucket: Optional[str] = None, acl: Optional[str] = None
