@@ -5,9 +5,16 @@ import boto3
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile
 
+from db import create_db_and_tables
+
 load_dotenv()
 
 app = FastAPI()
+
+
+@app.on_event("start_up")
+def on_startup():
+    create_db_and_tables()
 
 
 @app.post("/upload_bee/")
