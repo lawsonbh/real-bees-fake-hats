@@ -28,6 +28,31 @@ def create_object_s3_url(object_name: str) -> str:
     return f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{object_name}"
 
 
+def map_bee_files_to_urls() -> dict:
+    """Take each object in the amazon s3 bucket and map it to a url that
+    we can load into the database
+    """
+    # List of all objects currently in the S3 bucket
+    s3_objects = list_objects()
+
+    # Generate a dictionary so we can map each object to a url string
+    bee_file_to_url_dict = {key: None for key in s3_objects}
+
+    for bee_file_name, _bee_file_url in bee_file_to_url_dict:
+        bee_file_to_url_dict["bee_file_name"] = create_object_s3_url(
+            object_name=bee_file_name
+        )
+
+    return bee_file_to_url_dict
+
+
+def load_bee_photos_into_db():
+    """Placeholder function to actually use the sqlmodel session to load instances
+    of the Photo class from models.py
+    """
+    pass
+
+
 @app.post("/upload_bee/")
 def upload_bee_photo(
     file_obj: UploadFile, bucket: Optional[str] = None, acl: Optional[str] = None
