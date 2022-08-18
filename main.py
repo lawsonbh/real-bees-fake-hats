@@ -28,7 +28,7 @@ def create_object_s3_url(object_name: str) -> str:
     return f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{object_name}"
 
 
-def map_bee_files_to_urls() -> dict:
+def get_bucket_files() -> dict:
     """Take each object in the amazon s3 bucket and map it to a url that
     we can load into the database
     """
@@ -36,12 +36,9 @@ def map_bee_files_to_urls() -> dict:
     s3_objects = list_objects()
 
     # Generate a dictionary so we can map each object to a url string
-    bee_file_to_url_dict = {key: None for key in s3_objects}
-
-    for bee_file_name, _bee_file_url in bee_file_to_url_dict:
-        bee_file_to_url_dict["bee_file_name"] = create_object_s3_url(
-            object_name=bee_file_name
-        )
+    bee_file_to_url_dict = {
+        key: create_object_s3_url(object_name=key) for key in s3_objects
+    }
 
     return bee_file_to_url_dict
 
