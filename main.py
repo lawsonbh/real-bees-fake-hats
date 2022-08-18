@@ -4,10 +4,56 @@ from typing import Optional
 import boto3
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile
+from sqlmodel import Session
+
+from db import create_db_and_tables, engine
+from models import Photo
 
 load_dotenv()
 
 app = FastAPI()
+
+
+@app.on_event("start_up")
+def on_startup():
+    create_db_and_tables()
+
+
+def create_object_s3_url(object_name: str) -> str:
+    """Take an object name and construct a url to access it in the s3 bucket
+    :param object_name: name of the object in s3
+    :return: string representing the url to access the object
+    """
+    s3_bucket = os.environ["AWS_S3_BUCKET"]
+    aws_region = os.environ["AWS_REGION"]
+
+    return f"https://{s3_bucket}.s3.{aws_region}.amazonaws.com/{object_name}"
+
+
+def get_bucket_files() -> dict:
+    """Take each object in the amazon s3 bucket and map it to a url that
+    we can load into the database
+    """
+    # List of all objects currently in the S3 bucket
+    s3_objects = list_objects()
+
+    # Generate a dictionary so we can map each object to a url string
+    bee_file_to_url_dict = {
+        key: create_object_s3_url(object_name=key) for key in s3_objects
+    }
+
+    return bee_file_to_url_dict
+
+
+def load_bee_photos_into_db():
+    """Placeholder function to actually use the sqlmodel session to load instances
+    of the Photo class from models.py
+    """
+    with Session(engine) as session:
+        for bee_file, bee_url in get_bucket_files():
+            photo = Photo(name=bee_file, url=bee_url)
+            session.add(photo)
+        session.commit()
 
 
 @app.post("/upload_bee/")
