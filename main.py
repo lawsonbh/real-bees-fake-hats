@@ -4,8 +4,10 @@ from typing import Optional
 import boto3
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile
+from sqlmodel import Session
 
-from db import create_db_and_tables
+from db import create_db_and_tables, engine
+from models import Photo
 
 load_dotenv()
 
@@ -47,7 +49,11 @@ def load_bee_photos_into_db():
     """Placeholder function to actually use the sqlmodel session to load instances
     of the Photo class from models.py
     """
-    pass
+    with Session(engine) as session:
+        for bee_file, bee_url in get_bucket_files():
+            photo = Photo(name=bee_file, url=bee_url)
+            session.add(photo)
+        session.commit()
 
 
 @app.post("/upload_bee/")
